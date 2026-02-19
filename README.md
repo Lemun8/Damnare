@@ -20,16 +20,10 @@ Here are some of the main script that is used to manage the game.
 **Core Combat System**:
 |  Script       | Description                                                  |
 | ------------------- | ------------------------------------------------------------ |
-| `CharacterCombat.cs` | Core character component managing all combat-related data and mechanics. Manages character stats (HP, Mind, AP, Agility, Luck, Evasion, Accuracy), Maintains body part system (limb-based combat), Handles equipment (weapons, armor, accessories per limb), Applies item effects (healing, buffs, mind restoration), Manages status effects (buffs, debuffs, DOTs), Implements hunger system integration (HP clamping), Stat resolution with equipment and effect modifiers. |
-| `CombatManager.cs` | Orchestrates turn-based combat flow and manages all combat interactions. Combat state management (Setup, PlayerPlanning, Execution, Victory, Defeat), Turn order calculation based on Agility, Action execution (attacks, skills, items, healing, buffs, debuffs), Combat flow control and turn progression, Enemy AI decision-making, Victory/defeat detection and scene transitions. |
-| `BodyPart.cs`  | Represents individual body parts in the limb-based combat system. Individual HP tracking per limb, Equipment slots, Limb-specific skills, Blackout state, Functional status tracking, Stat modifiers from equipment. |
-| `PlayerActionPlanner.cs`  | Manages player action selection and planning during combat. Guides player through action selection workflow, Manages UI state transitions (body part → action type → skill/item → target), Queues player actions for execution,Interfaces with CombatUIManager for visual feedback |
-| `MainMenuManager.cs`  | Responsible for managing the Main Menu, to allow the player to start the game and open settings menu in the game |
-| `ModeSelection.cs`  | Responsible for Managing which Mode is currently selected in the UI so that the MainMenuManager can Start them |
-| `InGameMenuManager.cs`  | Responsible for Managing the UI, such as Pause Menu, Winning and Losing screen, etc. of the SinglPlayer mode |
-| `MultiplayerInGameMenu_Manager.cs`  | The same as InGameMenuManager.cs, but instead for Managing the UI of the Multiplayer mode |
-| `InGameMenuManager.cs`  | Responsible for Managing the UI, such as Pause Menu, Winning and Losing screen, etc. of the SinglPlayer mode |
-| `MultiplayerInGameMenu_Manager.cs`  | The same as InGameMenuManager.cs, but instead for Managing the UI of the Multiplayer mode |
+| `CharacterCombat.cs` | Core character component managing all combat-related data and mechanics. Manages character stats (HP, Mind, AP, Agility, Luck, Evasion, Accuracy), Maintains body part system (limb-based combat), Handles equipment (weapons, armor, accessories per limb), etc. |
+| `CombatManager.cs` | Orchestrates turn-based combat flow and manages all combat interactions. Combat state management (Setup, PlayerPlanning, Execution, Victory, Defeat), Turn order calculation based on Agility, Action execution (attacks, skills, items, healing, buffs, debuffs), etc. |
+| `BodyPart.cs`  | Represents individual body parts in the limb-based combat system. Individual HP tracking per limb, Equipment slots (weapon, armor, accessory), Limb-specific skills, etc. |
+| `PlayerActionPlanner.cs`  | Manages player action selection and planning during combat. Guides player through action selection workflow, Manages UI state transitions (body part → action type → skill/item → target), Queues player actions for execution, etc. |
 <br>
 
 <br> **The Player Script**:
