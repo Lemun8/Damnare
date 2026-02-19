@@ -26,36 +26,29 @@ Here are some of the main script that is used to manage the game.
 | `PlayerActionPlanner.cs`  | Manages player action selection and planning during combat. Guides player through action selection workflow, Manages UI state transitions (body part → action type → skill/item → target), Queues player actions for execution, etc. |
 <br>
 
-<br> **The Player Script**:
+<br> **Player Systems Script**:
 |  Script       | Description                                                  |
 | ------------------- | ------------------------------------------------------------ |
-| `PlayerAnimationManager.cs` | Responsible for Changing the current State of the player animator, from idling, attacking, enhanced, ulting, etc. by referencing  |
-| `PlayerAttackManager.cs` | Responsible for perfroming the Attacks of the player, such as activating hitbox, doing combo, dealing damage, and spawning hit vfx |
-| `PlayerAttributesManager.cs`  | Responsible for containing the stats of the player, and managing player's stats UI |
-| `PlayerCombatManager .cs`  | Responsible for containing the stats (damage multiplier from ATK stats, attack timing, current skill charge and ultimate energy, current combo stage, etc.) of the player's attacks, calling the Attack in PlayerAttackManager.cs, and deciding the state of the player Animation in PlayerAnimationManager.cs |
-| `PlayerEntity.cs`  | Responsible for storing the reference to all the player scripts so that it is easily accessible, and performing death process (calling animation, disabling input, and collider, etc.) |
-| `PlayerMovement.cs`  | Responsible for Managing the movement of the player, such as dashing and walking, as well as setting the state of the player animation in PlayerAnimationManager.cs |
-| `PlayerStateManager.cs`  | Responsible for storing the current player's state, and to be referenced by the PlayerAnimationManager.cs to decide which state the player is currently in |
-| `PlayerAudio.cs`  | Responsible for storing the player's sound clips, and playing them by calling the AudioManager.cs |
-| `PlayerProjectile.cs`  | Responsible for the projectiles created by player when in enhanced mode |
-| `ChargeIndicator.cs and DashTrail.cs`  | ChargeIndicator.cs is responsible for the vfx in UI, and DashTrail.cs is responsible for the dash trail effect |
+| `PlayerMind.cs` | Manages player's Mind resource in the overworld. Mind decay over time (configurable rate per minute), Persistence via PlayerGameState, Dynamic max Mind based on character class (Mage: 150, others: 100), etc. |
+| `PlayerHunger.cs` | Implements hunger mechanics affecting player survival. Hunger decay over time, Hunger stage management (Normal, Hunger, Greater Hunger), HP penalty application based on hunger level, etc. |
+| `PlayerGameState.cs`  | Static runtime state manager for player data persistence. Save/load player Mind and Hunger to PlayerPrefs, Character state initialization per class, Scene-to-scene data persistence, etc. |
 <br>
 
-<br> **The Enemy Script**:
+<br> **Overworld & Scene Management**:
 |  Script       | Description                                                  |
 | ------------------- | ------------------------------------------------------------ |
-| `EnemyActions.cs` | Responsible for storing the all the functions for the enemy's actions, such as walk and attacks, as well as their parameters like damage, hitbox size, etc |
-| `EnemActionsManager.cs` | Responsible for calling the EnemyActions, and changing the state of the Animator, from idling, to walking, to attacking |
-| `EnemyAttributesManager.cs` | Responsible for containing the stats of the enemy, and managing enemy's stats UI |
+| `OverworldSceneManager.cs` | Manages overworld scene setup and player spawning. Player character instantiation based on selected class, Spawn point management, Player state application (Mind, Hunger, HP), etc. |
+| `OverworldSkillExecutor.cs` | Executes skills outside of combat (healing). Skill execution in overworld context, Mind cost deduction, Healing skill application to all body parts, etc |
+| `EnemyOverworldAI.cs` | Controls enemy behavior in the overworld. Patrol and chase AI states, Player detection, Combat initiation, etc. |
 <br>
 
-<br> **The Multiplayer Script**:
+<br> **UI Systems Script**:
 |  Script       | Description                                                  |
 | ------------------- | ------------------------------------------------------------ |
-| `HazardsManager.cs` | Responsible for causing hazards to damage and hinder players during PVP gameplay |
-| `BasePickUp.cs`, `ATKIncreasePickUp.cs`, `ChargePickUp.cs`, `HealPickUp.cs` | Responsible for pick ups to buff and heal the players during PVP gameplay |
-| `PickUpContainer.cs`, `PickUpSpawnerManager.cs`, `PickUpContainer.cs` | Responsible for managing pick ups spawning location and timing |
-| `PlayerPickUpAnimation.cs` | Responsible for simple vfx when picking up pick ups |
+| `CombatUIManager.cs` | Renders and manages combat UI using OnGUI. Display action selection menus (body parts, skills, items, targets), Show player AP and Mind in real-time, Display status effects on player and enemies, etc. |
+| `OverworldMenuManager.cs` | Full-featured pause menu for overworld gameplay. Tab-based navigation (Stats, Items, Equipment, Skills, Settings, Exit), Real-time stat display (HP, Mind, Hunger), Inventory management (use items), etc. |
+| `DamagePopupManager.cs` | Displays floating damage/healing numbers and status text. Render damage numbers (red), Render healing numbers (green with + prefix), Show miss/evade messages, etc. |
+| `NotificationManager.cs` | Displays temporary on-screen notifications. Queue-based notification system, Auto-dismiss after timeout, Visual feedback for game events (hunger stage changes, item usage, etc). |
 <br>
 
 ##  System Design
