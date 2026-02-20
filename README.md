@@ -76,15 +76,17 @@ Here are some of the main script that is used to manage the game.
 
 ##  System Design
 Other than individual scripts, the game relies on several interconnected systems to handle several mechanics. Below is an overview of how the core mechanics are engineered.
+
 #### 1. Limb-Based Combat Architecture
 Instead of treating characters as single HP entities, the combat system implements a granular body part system where each limb is an independent combat unit.
+
 *   **How it works:** Each CharacterCombat contains a list of BodyPart components. Every body part maintains its own HP, equipment slots (weapon/armor/accessory), and skill list. During combat, players select which limb to use for actions and which enemy limb to target.
 *   **Blackout Mechanic:** When a body part's HP reaches zero, it enters a "blackout" state—unable to perform actions or equip items until healed. This creates tactical depth: targeting enemy weapon arms disables their attacks, while protecting your own limbs becomes critical.
 *   **Equipment Integration:** Each BodyPart has three EquipmentSlot instances. Stat calculations in CharacterCombat.ResolveStat() aggregate base stats + equipment bonuses + active status effects, allowing per-limb stat modifiers to affect overall combat effectiveness.
   
-#### 2. Animator Controller as AI State Machine
-The Enemy AI logic in `EnemyActionsManager.cs` offloads state management to the **Unity Animator Controller**, effectively using it as a Finite State Machine (FSM).
+#### 2. Turn-Based Action Queue & Execution Pipeline
+The combat flow separates player planning from execution, using a queue-based system to handle all actions in proper turn order.
 
-*   **Logic Flow:** The script calculates parameters like distance and timing, to decide the states in the Animator.
-*   **Decision Making:** The Animator transitions between **Idle**, **Walk**, and **Attack** states based on those paramaters.
-*   **Randomization:** When entering the "Attack" state, the AI randomly select different attack patterns, keeping the combat unpredictable.
+*   **Planning Phase:** PlayerActionPlanner.cs guides the player through a multi-step selection process (body part → action type → skill/item → target), validating AP and Mind costs at each step. Actions are stored as TurnAction objects in a queue.
+*   **Execution Phase:** Once planning ends, CombatManager.cs processes each queued action sequentially via coroutines, handling accuracy checks, damage calculations, status effect applications, and UI feedback (damage popups, animations).
+*   **Turn Order System:** Combat participants are sorted by Agility stat at the start of each round. Higher Agility characters act first, with the order recalculated each turn to account for stat changes from buffs/debuffs.
