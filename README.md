@@ -51,13 +51,37 @@ Here are some of the main script that is used to manage the game.
 | `NotificationManager.cs` | Displays temporary on-screen notifications. Queue-based notification system, Auto-dismiss after timeout, Visual feedback for game events (hunger stage changes, item usage, etc). |
 <br>
 
+<br> **Data Systems Script**:
+|  Script       | Description                                                  |
+| ------------------- | ------------------------------------------------------------ |
+| `SkillBase.cs` | Defines all skill data as ScriptableObjects. Skill name, description, AP and Mind costs, Damage range (min/max), etc. |
+| `ItemData.cs` | Defines consumable items. Item name, description, AP cost to use, Heal amount, etc. |
+| `EquipmentData.cs` | Defines weapons, armor, and accessories. Equipment name, type (Weapon, Armor, Accessory), Stat modifiers (ATK, MATK, DEF, MDEF), Limb slot assignment, etc. |
+| `CharacterPrefabLibrary.cs` | Maps character classes to their prefabs. Centralized character prefab registry, Used by scene managers to instantiate correct character, Supports character selection flow. |
+<br>
+
+<br> **Inventory System Script**:
+|  Script       | Description                                                  |
+| ------------------- | ------------------------------------------------------------ |
+| `Inventory.cs` | Manages player inventory with items and equipment. Add/remove items with quantity tracking, Stacking system, Slot-based storage, Query inventory for specific items, Support for both ItemData and EquipmentData. |
+<br>
+
+<br> **Supporting Systems Script**:
+|  Script       | Description                                                  |
+| ------------------- | ------------------------------------------------------------ |
+| `StatusEffect.cs` | Represents active buffs, debuffs, and DOTs. Effect type (buff/debuff), Stat modifiers (ATK, MATK, DEF, MDEF, AGI), DOT type (Bleed, Burn, Poison), etc. |
+| `EquipmentSlot.cs` | Container for equipped items on body parts. Hold reference to equipped item, Slot type identification, Equip/unequip operations, etc. |
+| `TurnAction.cs` | Represents a queued combat action. Actor (who performs the action), Skill or Item to use, Target character and body part, etc. |
+<br>
+
 ##  System Design
 Other than individual scripts, the game relies on several interconnected systems to handle several mechanics. Below is an overview of how the core mechanics are engineered.
-#### 1. Animation-Driven Hit Detection
-Instead of decoupling logic from visuals, the combat uses **Animation Events** to trigger hitbox calculations exactly when the weapon swings visually.
-*   **How it works:** We set an Animation Event in each Attacking Animation Clips, which when triggered will call the `Attack()` function in the `PlayerCombatManager.cs` and start the attacking logic in the `PlayerAttackManager.cs` to activate a `Physics.BoxCast`.
-*   **Combat Assist:** To improve game feel, the system detects if an enemy is slightly out of range during the wind-up and applies a forward "Drift" force as well as rotating them towards the enemy, sliding the player into effective range automatically.
-
+#### 1. Limb-Based Combat Architecture
+Instead of treating characters as single HP entities, the combat system implements a granular body part system where each limb is an independent combat unit.
+*   **How it works:** Each CharacterCombat contains a list of BodyPart components. Every body part maintains its own HP, equipment slots (weapon/armor/accessory), and skill list. During combat, players select which limb to use for actions and which enemy limb to target.
+*   **Blackout Mechanic:** When a body part's HP reaches zero, it enters a "blackout" state—unable to perform actions or equip items until healed. This creates tactical depth: targeting enemy weapon arms disables their attacks, while protecting your own limbs becomes critical.
+*   **Equipment Integration:** Each BodyPart has three EquipmentSlot instances. Stat calculations in CharacterCombat.ResolveStat() aggregate base stats + equipment bonuses + active status effects, allowing per-limb stat modifiers to affect overall combat effectiveness.
+  
 #### 2. Animator Controller as AI State Machine
 The Enemy AI logic in `EnemyActionsManager.cs` offloads state management to the **Unity Animator Controller**, effectively using it as a Finite State Machine (FSM).
 
