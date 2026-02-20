@@ -1,5 +1,5 @@
 # Damnare-Prototype/Demo
-The Code Design Documentation for the Damnare
+The Code Design Documentation for Damnare
 
 <img src="https://github.com/user-attachments/assets/1dac9800-41d3-4dfb-b0f1-e7abcf1a6b75"/>
 <!-- About the game -->
