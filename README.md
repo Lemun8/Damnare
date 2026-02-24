@@ -90,3 +90,69 @@ The combat flow separates player planning from execution, using a queue-based sy
 *   **Planning Phase:** PlayerActionPlanner.cs guides the player through a multi-step selection process (body part → action type → skill/item → target), validating AP and Mind costs at each step. Actions are stored as TurnAction objects in a queue.
 *   **Execution Phase:** Once planning ends, CombatManager.cs processes each queued action sequentially via coroutines, handling accuracy checks, damage calculations, status effect applications, and UI feedback (damage popups, animations).
 *   **Turn Order System:** Combat participants are sorted by Agility stat at the start of each round. Higher Agility characters act first, with the order recalculated each turn to account for stat changes from buffs/debuffs.
+
+#### 3. Resource Management Triad: HP, Mind, and Hunger
+The game implements three interconnected resource systems that create strategic depth in both combat and exploration.
+
+*   **HP (Health Points):** Distributed across body parts. Total character HP is the sum of all limb HP values. Damage targets specific limbs, and healing can restore individual parts or the whole body.
+*   **Mind Resource:** Managed by PlayerMind.cs in the overworld and CharacterCombat.currentMind in combat. Magic skills consume Mind, which decays over time in the overworld at a configurable rate. Max Mind is character-specific (Mage: 150, others: 100).
+*   **Hunger System:** PlayerHunger.cs tracks hunger decay over time, transitioning through stages (Normal → Hunger → Greater Hunger). Low hunger applies an HP penalty via CharacterCombat.ApplyHungerHPClamp(), reducing effective max HP for all body parts. Starvation (hunger = 0) triggers game over.
+
+#### 4. ScriptableObject-Driven Data Pipeline
+Skills, items, and equipment are defined as ScriptableObjects rather than hardcoded classes, creating a data-driven architecture that separates design from implementation.
+
+*   **How it works:** Designers create SkillBase, ItemData, and EquipmentData assets in the Unity Editor, configuring properties like damage ranges, AP costs, Mind costs, target types, and usage contexts (Combat/Overworld/Both).
+*   **Runtime Usage:** When a skill is used, CombatManager.ExecuteSkillAction() reads the ScriptableObject's properties to determine behavior: Is it a damage skill? Healing skill? Buff skill? The same data structure supports both combat and overworld contexts.
+*   **Flexibility:** The usageContext enum allows skills to work in combat only, overworld only, or both. For example, healing skills work everywhere, while attack skills are combat-only. OverworldSkillExecutor.cs and CombatManager.cs both consume the same SkillBase data.
+
+#### 5. Dynamic Stat Resolution with Layered Modifiers
+Character stats are calculated on-the-fly by aggregating multiple modifier sources, rather than storing final values.
+
+*   **Calculation Layers:**
+Base Stats: Defined on BodyPart (attack, defense, etc.)
+Equipment Bonuses: Each equipped item adds stat modifiers
+Status Effects: Active buffs/debuffs apply temporary modifiers
+Hunger Penalty: Low hunger reduces effective max HP
+*   **Implementation:** CharacterCombat.ResolveStat() accepts a base stat value and iterates through all active StatusEffect instances, summing their modifiers. Equipment stats are queried from EquipmentSlot.equippedItem on each body part.
+*   **Example Flow:**
+Final Attack = Base Attack (20)
+              + Weapon Bonus (15)
+              + Buff Effect (+5)
+              + Debuff Effect (-3)
+              = 37
+
+#### 6. Persistent State Management Across Scenes
+The game uses a static singleton pattern (PlayerGameState) combined with PlayerPrefs to maintain player state across scene transitions (Overworld ↔ Combat).
+
+*   **State Flow:**
+Overworld: PlayerMind and PlayerHunger continuously update PlayerGameState.CurrentMind and PlayerGameState.CurrentHunger
+Scene Transition: Before loading combat, values are saved to PlayerPrefs via PlayerGameState.Save()
+Combat Scene: CombatManager loads values and applies them to the player's CharacterCombat.currentMind
+Return to Overworld: OverworldSceneManager.ApplySavedStateToPlayer() restores saved Mind/Hunger, and PlayerMind.Start() initializes from the loaded value
+*   **Character-Specific Initialization:** PlayerGameState.InitializeMindForCharacter() sets Mind to the character's max value (from overallStats.mind) on new games, ensuring Mages start with 150 Mind while others start with 100.
+
+#### 7. UI-Driven Validation and Feedback
+The UI layer validates player actions before queuing them, providing instant visual feedback on invalid choices.
+
+*   **Validation Points:**
+CombatUIManager grays out skills when the player lacks sufficient AP or Mind
+Body parts that are blacked out or already used show visual indicators [BLACKOUT] or [Used]
+Equipment manager disables "Equip" buttons when the player's class cannot use an item or no eligible limb exists
+*   **Color-Coded Resources:**
+Mind display turns yellow (<50%), red (<25%)
+Hunger stages color-coded in notifications
+Damage popups (red), healing popups (green), miss/evade (gray/cyan)
+*   **Real-Time Updates:** OnGUI() renders every frame while menus are open, so Mind decay and Hunger changes are visible in real-time without closing/reopening menus.
+
+#### 8. Enemy AI Decision Tree
+Enemy behavior in combat is driven by a weighted decision system that evaluates available options based on cost and context.
+
+*   **Decision Flow:**
+CombatManager.PlanEnemyTurn() gathers all functional body parts
+For each limb, filter skills by AP cost and Mind requirements
+Randomly select a skill from affordable options
+Choose a random target from living enemies
+Select a random functional body part on the target
+Queue action for execution
+*   **Randomization:** Enemy AI intentionally uses random selection to keep combat unpredictable. This prevents players from exploiting deterministic patterns.
+*   **Constraint Handling:** If an enemy has no affordable skills (low AP/Mind), they skip their turn. Blacked-out limbs are excluded from selection.
