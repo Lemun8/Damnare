@@ -109,10 +109,10 @@ Skills, items, and equipment are defined as ScriptableObjects rather than hardco
 Character stats are calculated on-the-fly by aggregating multiple modifier sources, rather than storing final values.
 
 *   **Calculation Layers:**
-Base Stats: Defined on BodyPart (attack, defense, etc.)
-Equipment Bonuses: Each equipped item adds stat modifiers
-Status Effects: Active buffs/debuffs apply temporary modifiers
-Hunger Penalty: Low hunger reduces effective max HP
+    -  Base Stats: Defined on BodyPart (attack, defense, etc.)
+    -  Equipment Bonuses: Each equipped item adds stat modifiers
+    -  Status Effects: Active buffs/debuffs apply temporary modifiers
+    -  Hunger Penalty: Low hunger reduces effective max HP
 *   **Implementation:** CharacterCombat.ResolveStat() accepts a base stat value and iterates through all active StatusEffect instances, summing their modifiers. Equipment stats are queried from EquipmentSlot.equippedItem on each body part.
 *   **Example Flow:**
 Final Attack = Base Attack (20)
@@ -125,45 +125,34 @@ Final Attack = Base Attack (20)
 The game uses a static singleton pattern (PlayerGameState) combined with PlayerPrefs to maintain player state across scene transitions (Overworld ↔ Combat).
 
 *   **State Flow:**
-Overworld: PlayerMind and PlayerHunger continuously update PlayerGameState.CurrentMind and PlayerGameState.CurrentHunger
-Scene Transition: Before loading combat, values are saved to PlayerPrefs via PlayerGameState.Save()
-Combat Scene: CombatManager loads values and applies them to the player's CharacterCombat.currentMind
-Return to Overworld: OverworldSceneManager.ApplySavedStateToPlayer() restores saved Mind/Hunger, and PlayerMind.Start() initializes from the loaded value
+    -  Overworld: PlayerMind and PlayerHunger continuously update PlayerGameState.CurrentMind and PlayerGameState.CurrentHunger
+    -  Scene Transition: Before loading combat, values are saved to PlayerPrefs via PlayerGameState.Save()
+    -  Combat Scene: CombatManager loads values and applies them to the player's CharacterCombat.currentMind
+    -  Return to Overworld: OverworldSceneManager.ApplySavedStateToPlayer() restores saved Mind/Hunger, and PlayerMind.Start() initializes from the loaded value
 *   **Character-Specific Initialization:** PlayerGameState.InitializeMindForCharacter() sets Mind to the character's max value (from overallStats.mind) on new games, ensuring Mages start with 150 Mind while others start with 100.
 
 #### 7. UI-Driven Validation and Feedback
 The UI layer validates player actions before queuing them, providing instant visual feedback on invalid choices.
 
 *   **Validation Points:**
-CombatUIManager grays out skills when the player lacks sufficient AP or Mind
-Body parts that are blacked out or already used show visual indicators [BLACKOUT] or [Used]
-Equipment manager disables "Equip" buttons when the player's class cannot use an item or no eligible limb exists
+    -  CombatUIManager grays out skills when the player lacks sufficient AP or Mind
+    -  Body parts that are blacked out or already used show visual indicators [BLACKOUT] or [Used]
+    -  Equipment manager disables "Equip" buttons when the player's class cannot use an item or no eligible limb exists
 *   **Color-Coded Resources:**
-Mind display turns yellow (<50%), red (<25%)
-Hunger stages color-coded in notifications
-Damage popups (red), healing popups (green), miss/evade (gray/cyan)
+    -  Mind display turns yellow (<50%), red (<25%)
+    -  Hunger stages color-coded in notifications
+    -  Damage popups (red), healing popups (green), miss/evade (gray/cyan)
 *   **Real-Time Updates:** OnGUI() renders every frame while menus are open, so Mind decay and Hunger changes are visible in real-time without closing/reopening menus.
 
 #### 8. Enemy AI Decision Tree
 Enemy behavior in combat is driven by a weighted decision system that evaluates available options based on cost and context.
 
 *   **Decision Flow:**
-CombatManager.PlanEnemyTurn() gathers all functional body parts
-For each limb, filter skills by AP cost and Mind requirements
-Randomly select a skill from affordable options
-Choose a random target from living enemies
-Select a random functional body part on the target
-Queue action for execution
+    -  CombatManager.PlanEnemyTurn() gathers all functional body parts
+    -  For each limb, filter skills by AP cost and Mind requirements
+    -  Randomly select a skill from affordable options
+    -  Choose a random target from living enemies
+    -  Select a random functional body part on the target
+    -  Queue action for execution
 *   **Randomization:** Enemy AI intentionally uses random selection to keep combat unpredictable. This prevents players from exploiting deterministic patterns.
 *   **Constraint Handling:** If an enemy has no affordable skills (low AP/Mind), they skip their turn. Blacked-out limbs are excluded from selection.
-
-##  Architecture Summary
-The game's architecture prioritizes:
-
-*   Modularity: Systems like PlayerMind, PlayerHunger, and Inventory are self-contained components
-*   Data-Driven Design: ScriptableObjects enable rapid content creation without code changes
-*   State Separation: Clear boundaries between planning (input) and execution (logic)
-*   Real-Time Feedback: UI updates continuously to reflect game state changes
-*   Persistence: Seamless state transfer across scenes via static singletons and PlayerPrefs
-
-This design allows for easy extension (new skills, items, status effects) while maintaining clean separation of concerns across combat, exploration, and UI layers.
