@@ -156,3 +156,14 @@ Select a random functional body part on the target
 Queue action for execution
 *   **Randomization:** Enemy AI intentionally uses random selection to keep combat unpredictable. This prevents players from exploiting deterministic patterns.
 *   **Constraint Handling:** If an enemy has no affordable skills (low AP/Mind), they skip their turn. Blacked-out limbs are excluded from selection.
+
+##  Architecture Summary
+The game's architecture prioritizes:
+
+*   Modularity: Systems like PlayerMind, PlayerHunger, and Inventory are self-contained components
+*   Data-Driven Design: ScriptableObjects enable rapid content creation without code changes
+*   State Separation: Clear boundaries between planning (input) and execution (logic)
+*   Real-Time Feedback: UI updates continuously to reflect game state changes
+*   Persistence: Seamless state transfer across scenes via static singletons and PlayerPrefs
+
+This design allows for easy extension (new skills, items, status effects) while maintaining clean separation of concerns across combat, exploration, and UI layers.
